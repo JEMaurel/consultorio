@@ -11,7 +11,26 @@
         <!-- Calendario -->
         <div class="calendar">
             <h2>Calendario</h2>
-            <div id="calendar"></div>
+            <div class="calendar-header">
+    <button onclick="prevMonth()">&#8592;</button>
+    <span id="monthTitle"></span>
+    <button onclick="nextMonth()">&#8594;</button>
+</div>
+<table id="calendarTable">
+    <thead>
+        <tr>
+            <th>Lun</th>
+            <th>Mar</th>
+            <th>Mié</th>
+            <th>Jue</th>
+            <th>Vie</th>
+            <th>Sáb</th>
+            <th>Dom</th>
+        </tr>
+    </thead>
+    <tbody id="calendarBody"></tbody>
+</table>
+
         </div>
 
         <!-- Horarios de turnos -->
