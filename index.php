@@ -8,9 +8,15 @@
 </head>
 <body>
     <div class="container">
+        <!-- Calendario -->
+        <div class="calendar">
+            <h2>Calendario</h2>
+            <div id="calendar"></div>
+        </div>
+
         <!-- Horarios de turnos -->
-        <div class="schedule">
-            <h2>Horario de Turnos - <?php echo date('Y-m-d'); ?></h2>
+        <div class="schedule" id="schedule">
+            <h2>Horario de Turnos - <span id="selectedDateDisplay"><?php echo date('Y-m-d'); ?></span></h2>
             <table>
                 <thead>
                     <tr>
@@ -19,46 +25,10 @@
                         <th>Acción</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php
-                    // Conexión a la base de datos
-                    $conn = new mysqli("localhost", "root", "", "consultorio_db");
-                    if ($conn->connect_error) {
-                        die("Conexión fallida: " . $conn->connect_error);
-                    }
-
-                    // Horarios de ejemplo (8:00 a 17:00, cada 30 minutos)
-                    $times = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
-                    $today = date('Y-m-d');
-
-                    foreach ($times as $time) {
-                        // Verificar si hay un turno registrado
-                        $sql = "SELECT patient_name FROM appointments WHERE appointment_date = '$today' AND appointment_time = '$time'";
-                        $result = $conn->query($sql);
-                        $patient = $result->num_rows > 0 ? $result->fetch_assoc()['patient_name'] : '';
-
-                        echo "<tr>";
-                        echo "<td>$time</td>";
-                        echo "<td>" . ($patient ? $patient : "Libre") . "</td>";
-                        echo "<td>";
-                        if (!$patient) {
-                            echo "<button onclick=\"openForm('$time')\">Registrar</button>";
-                        } else {
-                            echo "Ocupado";
-                        }
-                        echo "</td>";
-                        echo "</tr>";
-                    }
-                    $conn->close();
-                    ?>
+                <tbody id="scheduleBody">
+                    <!-- Se llenará por JS -->
                 </tbody>
             </table>
-        </div>
-
-        <!-- Calendario -->
-        <div class="calendar">
-            <h2>Calendario</h2>
-            <div id="calendar"></div>
         </div>
     </div>
 
@@ -69,14 +39,34 @@
             <h2>Registrar Paciente</h2>
             <form action="save_appointment.php" method="POST">
                 <input type="hidden" id="appointment_time" name="appointment_time">
-                <input type="hidden" name="appointment_date" value="<?php echo date('Y-m-d'); ?>">
+                <input type="hidden" id="appointment_date" name="appointment_date">
                 <label for="patient_name">Nombre del Paciente:</label>
                 <input type="text" id="patient_name" name="patient_name" required>
+                <label for="obra_social">Obra Social:</label>
+                <input type="text" id="obra_social" name="obra_social" required>
+                <label>
+                    <input type="checkbox" id="multiple_days" onclick="toggleDaysSelector()">
+                    Repetir este turno otros días de esta semana
+                </label>
+                <div id="daysSelector" style="display: none;">
+                    <label><input type="checkbox" name="extra_days[]" value="Monday"> Lunes</label>
+                    <label><input type="checkbox" name="extra_days[]" value="Tuesday"> Martes</label>
+                    <label><input type="checkbox" name="extra_days[]" value="Wednesday"> Miércoles</label>
+                    <label><input type="checkbox" name="extra_days[]" value="Thursday"> Jueves</label>
+                    <label><input type="checkbox" name="extra_days[]" value="Friday"> Viernes</label>
+                </div>
                 <button type="submit">Guardar</button>
             </form>
         </div>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split("T")[0];
+            loadSchedule(today);
+            generateCalendar();
+        });
+    </script>
 </body>
 </html>
