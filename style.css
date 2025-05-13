@@ -46,7 +46,7 @@ body {
 
 .calendar {
     width: 35%;
-    background-color: white;
+    background-color: rgb(255, 0, 242);
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
