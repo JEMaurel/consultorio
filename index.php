@@ -6,6 +6,37 @@
     <title>Consultorio - Gestión de Turnos</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<!-- Chat con IA -->
+<div id="chat-ia" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 10px;">
+    <h4>Consulta IA</h4>
+    <div id="respuesta-ia" style="height: 200px; overflow-y: scroll; border: 1px solid #eee; padding: 5px; margin: 10px 0;"></div>
+    <input type="text" id="pregunta-ia" placeholder="Pregunta algo..." style="width: 70%;">
+    <button onclick="consultarIA()" style="width: 25%;">Enviar</button>
+</div>
+
+<script>
+async function consultarIA() {
+    const pregunta = document.getElementById('pregunta-ia').value;
+    if (!pregunta) return;
+    
+    document.getElementById('respuesta-ia').innerHTML += '<p><strong>Tú:</strong> ' + pregunta + '</p>';
+    document.getElementById('pregunta-ia').value = '';
+    
+    try {
+        const response = await fetch('consultar_ia.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({pregunta: pregunta})
+        });
+        
+        const data = await response.json();
+        document.getElementById('respuesta-ia').innerHTML += '<p><strong>IA:</strong> ' + data.respuesta + '</p>';
+        document.getElementById('respuesta-ia').scrollTop = document.getElementById('respuesta-ia').scrollHeight;
+    } catch (error) {
+        document.getElementById('respuesta-ia').innerHTML += '<p><strong>Error:</strong> No se pudo conectar con la IA</p>';
+    }
+}
+</script>
 <body>
     <div class="container">
         <!-- Calendario -->
