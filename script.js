@@ -165,11 +165,21 @@ function closeForm() {
 const appointmentForm = document.querySelector('#appointmentForm form');
 if (appointmentForm) {
     appointmentForm.addEventListener('submit', function(e) {
-        setTimeout(() => {
-            // Espera a que el backend procese y recarga la grilla
-            const date = document.getElementById('appointment_date').value;
-            loadSchedule(date);
-        }, 300);
+        e.preventDefault();
+        const formData = new FormData(appointmentForm);
+        fetch('save_appointment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(() => {
+            closeForm();
+            // Esperar un poco para asegurar que la BD se actualizó
+            setTimeout(() => {
+                const date = document.getElementById('appointment_date').value;
+                loadSchedule(date);
+            }, 200);
+        });
     });
 }
 

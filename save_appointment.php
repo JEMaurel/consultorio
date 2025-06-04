@@ -11,6 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $obra = $_POST['obra_social'];
     $extra_days = isset($_POST['extra_days']) ? $_POST['extra_days'] : [];
 
+    // Eliminar turno existente para ese horario y fecha antes de insertar (permite editar)
+    $conn->query("DELETE FROM appointments WHERE appointment_date = '$date' AND appointment_time = '$time'");
+
     // Turno principal
     $conn->query("INSERT INTO appointments (appointment_date, appointment_time, patient_name, obra_social) VALUES ('$date', '$time', '$patient', '$obra')");
 
@@ -23,6 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $conn->close();
+    // Si es petición AJAX, no redirigir
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || !empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+        echo json_encode(['success' => true]);
+        exit;
+    }
     header("Location: index.php");
 }
 ?>
