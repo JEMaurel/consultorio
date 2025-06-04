@@ -23,7 +23,7 @@ async function consultarIA() {
     document.getElementById('pregunta-ia').value = '';
     
     try {
-        const response = await fetch('consultar_ia.php', {
+        const response = await fetch('ia_consultorio_smart.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({pregunta: pregunta})
