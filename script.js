@@ -27,7 +27,7 @@ function generateCalendar(date = new Date()) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dateCounter).padStart(2, '0')}`;
                 const isToday = dateStr === todayStr;
                 rowHtml += `<td class="${isToday ? 'today' : ''}">
-                                <button onclick="selectDate('${dateStr}')">${dateCounter}</button>
+                                <button class="calendar-day-btn" onclick="selectDate('${dateStr}', this)">${dateCounter}</button>
                             </td>`;
                 dateCounter++;
             }
@@ -38,6 +38,14 @@ function generateCalendar(date = new Date()) {
     }
 
     document.getElementById("calendarBody").innerHTML = calendarBody;
+
+    // Selección visual del día en el calendario
+    document.querySelectorAll("#calendarBody .calendar-day-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            document.querySelectorAll("#calendarBody .calendar-day-btn.selected").forEach(sel => sel.classList.remove("selected"));
+            this.classList.add("selected");
+        });
+    });
 }
 
 function prevMonth() {
@@ -50,9 +58,15 @@ function nextMonth() {
     generateCalendar(currentDate);
 }
 
-function selectDate(date) {
+function selectDate(date, btn = null) {
     document.getElementById("selectedDateDisplay").textContent = date;
     loadSchedule(date);
+
+    // Resalta el botón seleccionado si se llama desde el onclick
+    if (btn) {
+        document.querySelectorAll("#calendarBody .calendar-day-btn.selected").forEach(sel => sel.classList.remove("selected"));
+        btn.classList.add("selected");
+    }
 }
 
 function loadSchedule(date) {
