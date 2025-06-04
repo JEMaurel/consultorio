@@ -168,3 +168,7 @@ form button:hover {
     background-color: #2196f3 !important;
     color: #fff !important;
 }
+
+#chat-ia button {
+    border-radius: 12px !important;
+}
