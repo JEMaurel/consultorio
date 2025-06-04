@@ -36,6 +36,16 @@ async function consultarIA() {
         document.getElementById('respuesta-ia').innerHTML += '<p><strong>Error:</strong> No se pudo conectar con la IA</p>';
     }
 }
+// Permitir enviar pregunta con Enter
+const inputIA = document.getElementById('pregunta-ia');
+if (inputIA) {
+    inputIA.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            consultarIA();
+        }
+    });
+}
 </script>
 <body>
     <div class="container">
