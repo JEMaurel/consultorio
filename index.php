@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <!-- Chat con IA -->
-<div id="chat-ia" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 10px;">
-    <h4>Consulta IA</h4>
-    <div id="respuesta-ia" style="height: 200px; overflow-y: scroll; border: 1px solid #eee; padding: 5px; margin: 10px 0;"></div>
-    <input type="text" id="pregunta-ia" placeholder="Pregunta algo..." style="width: 70%;">
-    <button onclick="consultarIA()" style="width: 25%;">Enviar</button>
+<div id="chat-ia" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 10px; transition: height 0.3s, min-height 0.3s; min-height: 40px; z-index: 1000;">
+    <div id="ia-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+        <h4 style="margin: 0;">Consulta IA</h4>
+        <button id="toggle-ia" style="background: none; border: none; font-size: 18px; cursor: pointer;">&#x2212;</button>
+    </div>
+    <div id="ia-content">
+        <div id="respuesta-ia" style="height: 200px; overflow-y: scroll; border: 1px solid #eee; padding: 5px; margin: 10px 0;"></div>
+        <input type="text" id="pregunta-ia" placeholder="Pregunta algo..." style="width: 70%;">
+        <button onclick="consultarIA()" style="width: 25%;">Enviar</button>
+    </div>
 </div>
 
 <script>
@@ -46,6 +51,24 @@ if (inputIA) {
         }
     });
 }
+// Minimizar/expandir panel IA
+const iaPanel = document.getElementById('chat-ia');
+const iaContent = document.getElementById('ia-content');
+const toggleBtn = document.getElementById('toggle-ia');
+let iaMinimized = false;
+toggleBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    iaMinimized = !iaMinimized;
+    if (iaMinimized) {
+        iaContent.style.display = 'none';
+        toggleBtn.innerHTML = '&#x25A1;'; // icono expandir
+        iaPanel.style.minHeight = '40px';
+    } else {
+        iaContent.style.display = 'block';
+        toggleBtn.innerHTML = '&#x2212;'; // icono minimizar
+        iaPanel.style.minHeight = '';
+    }
+});
 </script>
 <body>
     <div class="container">
