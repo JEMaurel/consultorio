@@ -162,7 +162,6 @@ form button:hover {
     background-color: #ffeb3b;
     font-weight: bold;
 }
-/* ...existing code... */
 
 .calendar-day-btn.selected {
     background-color: #2196f3 !important;
@@ -171,4 +170,10 @@ form button:hover {
 
 #chat-ia button {
     border-radius: 12px !important;
+    background-color: #ffa726 !important; /* naranja claro */
+    color: #fff !important;
+}
+
+#chat-ia button:hover {
+    background-color: #fb8c00 !important; /* naranja más intenso al pasar el mouse */
 }
