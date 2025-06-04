@@ -81,11 +81,21 @@ function loadSchedule(date) {
 
             data.forEach(slot => {
                 const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${slot.time}</td>
-                    <td>${slot.patient ? slot.patient : "Libre"}</td>
-                    <td>${slot.patient ? "Ocupado" : `<button onclick="openForm('${slot.time}', '${date}')">Registrar</button>`}</td>
-                `;
+                if (slot.patient) {
+                    row.innerHTML = `
+                        <td>${slot.time}</td>
+                        <td class="patient-cell">${slot.patient}</td>
+                        <td>
+                            <button class="edit-btn ocupado-btn" onclick="editAppointment('${slot.time}', '${date}')">Ocupado</button>
+                        </td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td>${slot.time}</td>
+                        <td>Libre</td>
+                        <td><button onclick="openForm('${slot.time}', '${date}')">Registrar</button></td>
+                    `;
+                }
                 tbody.appendChild(row);
             });
         });
@@ -97,8 +107,70 @@ function openForm(time, date) {
     document.getElementById("appointmentForm").style.display = "block";
 }
 
+function editAppointment(time, date) {
+    // Cargar datos del turno para edición
+    fetch(`get_appointment.php?date=${date}&time=${time}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("appointment_time").value = time;
+            document.getElementById("appointment_date").value = date;
+            document.getElementById("patient_name").value = data.patient_name;
+            document.getElementById("obra_social").value = data.obra_social;
+            document.getElementById("appointmentForm").style.display = "block";
+            // Mostrar botón para eliminar
+            let delBtn = document.getElementById('delete-appointment-btn');
+            if (!delBtn) {
+                delBtn = document.createElement('button');
+                delBtn.id = 'delete-appointment-btn';
+                delBtn.type = 'button';
+                delBtn.textContent = 'Eliminar turno';
+                delBtn.style.backgroundColor = '#e53935';
+                delBtn.style.marginTop = '10px';
+                delBtn.style.color = '#fff';
+                delBtn.onclick = function() { deleteAppointment(time, date); };
+                document.querySelector('#appointmentForm .modal-content form').appendChild(delBtn);
+            } else {
+                delBtn.onclick = function() { deleteAppointment(time, date); };
+                delBtn.style.display = 'block';
+            }
+        });
+}
+
+function deleteAppointment(time, date) {
+    if (!confirm('¿Seguro que desea eliminar este turno?')) return;
+    fetch('delete_appointment.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({appointment_time: time, appointment_date: date})
+    })
+    .then(response => response.json())
+    .then(data => {
+        closeForm();
+        // Recargar la grilla
+        loadSchedule(date);
+    });
+}
+
 function closeForm() {
     document.getElementById("appointmentForm").style.display = "none";
+    // Ocultar botón eliminar si existe
+    let delBtn = document.getElementById('delete-appointment-btn');
+    if (delBtn) delBtn.style.display = 'none';
+    // Limpiar campos del formulario
+    document.getElementById("patient_name").value = '';
+    document.getElementById("obra_social").value = '';
+}
+
+// Actualizar nombre del paciente en la tabla al guardar
+const appointmentForm = document.querySelector('#appointmentForm form');
+if (appointmentForm) {
+    appointmentForm.addEventListener('submit', function(e) {
+        setTimeout(() => {
+            // Espera a que el backend procese y recarga la grilla
+            const date = document.getElementById('appointment_date').value;
+            loadSchedule(date);
+        }, 300);
+    });
 }
 
 function toggleDaysSelector() {

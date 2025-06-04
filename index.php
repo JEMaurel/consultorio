@@ -139,6 +139,7 @@ toggleBtn.addEventListener('click', function(e) {
                     <label><input type="checkbox" name="extra_days[]" value="Friday"> Viernes</label>
                 </div>
                 <button type="submit">Guardar</button>
+                <!-- El botón Eliminar se agrega dinámicamente por JS si corresponde -->
             </form>
         </div>
     </div>

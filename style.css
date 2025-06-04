@@ -177,3 +177,14 @@ form button:hover {
 #chat-ia button:hover {
     background-color: #fb8c00 !important; /* naranja más intenso al pasar el mouse */
 }
+
+.ocupado-btn {
+    background-color: #81c784 !important; /* verde claro */
+    color: #fff !important;
+    border-radius: 12px !important;
+    font-weight: bold;
+}
+
+.ocupado-btn:hover {
+    background-color: #66bb6a !important;
+}
