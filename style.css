@@ -188,3 +188,31 @@ form button:hover {
 .ocupado-btn:hover {
     background-color: #66bb6a !important;
 }
+
+.autocomplete-dropdown {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    min-width: 180px;
+    font-size: 15px;
+}
+.autocomplete-option:hover {
+    background: #f5ecd7;
+}
+.patient-data-form {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    border-radius: 8px;
+    min-width: 250px;
+    font-size: 15px;
+}
+.patient-data-form button {
+    margin-right: 8px;
+    border-radius: 8px;
+    background: #ffa726;
+    color: #fff;
+    border: none;
+    padding: 6px 16px;
+    cursor: pointer;
+}
+.patient-data-form button.close-patient-form {
+    background: #e53935;
+}
