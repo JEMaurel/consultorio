@@ -127,7 +127,7 @@ toggleBtn.addEventListener('click', function(e) {
                 <label for="patient_name">Nombre del Paciente:</label>
                 <input type="text" id="patient_name" name="patient_name" required>
                 <label for="obra_social">Obra Social:</label>
-                <input type="text" id="obra_social" name="obra_social" required>
+                <input type="text" id="obra_social" name="obra_social" placeholder="(opcional)">
                 <label>
                     <input type="checkbox" id="multiple_days" onclick="toggleDaysSelector()">
                     Repetir este turno otros días de esta semana

@@ -390,6 +390,7 @@ function afterScheduleRender() {
 // --- AUTOCOMPLETADO INTELIGENTE EN EL FORMULARIO DE REGISTRO ---
 document.addEventListener('DOMContentLoaded', function() {
     const patientInput = document.getElementById('patient_name');
+    const obraInput = document.getElementById('obra_social');
     if (patientInput) {
         let dropdown;
         patientInput.addEventListener('input', function() {
@@ -412,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     dropdown.style.width = patientInput.offsetWidth + 'px';
                     dropdown.style.maxHeight = '200px';
                     dropdown.style.overflowY = 'auto';
-                    // Posicionar debajo del input
                     const rect = patientInput.getBoundingClientRect();
                     dropdown.style.left = rect.left + window.scrollX + 'px';
                     dropdown.style.top = rect.bottom + window.scrollY + 'px';
@@ -425,17 +425,55 @@ document.addEventListener('DOMContentLoaded', function() {
                         opt.addEventListener('mousedown', function(e) {
                             e.preventDefault();
                             patientInput.value = name;
-                            dropdown.remove();
+                            if (dropdown) dropdown.remove();
+                            // Buscar datos completos del paciente seleccionado
+                            fetch('get_patient_data.php?patient=' + encodeURIComponent(name))
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (obraInput) {
+                                        if (data && data.obra_social) {
+                                            obraInput.value = data.obra_social;
+                                        } else {
+                                            obraInput.value = '';
+                                        }
+                                    }
+                                    // Si hay historia clínica, podrías autocompletar otros campos aquí
+                                });
                         });
                         dropdown.appendChild(opt);
                     });
                     document.body.appendChild(dropdown);
                 });
         });
-        // Cerrar dropdown si se hace click fuera
         document.addEventListener('mousedown', function handler(e) {
             if (dropdown && !dropdown.contains(e.target) && e.target !== patientInput) {
                 dropdown.remove();
+            }
+        });
+    }
+
+    // Guardar automáticamente la obra social en la historia clínica si es la primera vez
+    const appointmentForm = document.querySelector('#appointmentForm form');
+    if (appointmentForm) {
+        appointmentForm.addEventListener('submit', function(e) {
+            const name = patientInput.value.trim();
+            const obra = obraInput.value.trim();
+            if (name && obra) {
+                // Consultar si ya existe historia clínica
+                fetch('get_patient_data.php?patient=' + encodeURIComponent(name))
+                    .then(r => r.json())
+                    .then(data => {
+                        let history = data.history || '';
+                        // Si la historia no contiene la obra social, agregarla al principio
+                        if (!history.includes('Obra Social:')) {
+                            history = 'Obra Social: ' + obra + '\n' + history;
+                            fetch('save_patient_data.php', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({name: name, history: history, data: data.data || ''})
+                            });
+                        }
+                    });
             }
         });
     }
