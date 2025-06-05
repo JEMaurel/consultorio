@@ -346,3 +346,23 @@ td, th, .calendar-day-btn {
     border-radius: 8px;
     box-shadow: 0 2px 8px #e0c9a650;
 }
+
+/* Sábado y domingo en el calendario con fondo suave */
+#calendarBody tr td:nth-child(6) { /* Sábado */
+    background: #f0f6ff;
+}
+#calendarBody tr td:nth-child(7) { /* Domingo */
+    background: #fff0f0;
+}
+#calendarBody tr td:nth-child(6):has(.calendar-day-btn.selected),
+#calendarBody tr td:nth-child(7):has(.calendar-day-btn.selected) {
+    background: #ffe0b2 !important;
+}
+#calendarBody th:nth-child(6) { /* Sábado header */
+    background: #e0ecff;
+    color: #2d5c8a;
+}
+#calendarBody th:nth-child(7) { /* Domingo header */
+    background: #ffe0e0;
+    color: #b85c00;
+}
