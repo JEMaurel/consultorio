@@ -79,26 +79,127 @@ function loadSchedule(date) {
             scheduleDiv.style.display = "block";
             data.forEach(slot => {
                 const row = document.createElement("tr");
+                // --- Celda de hora con scroll selector ---
+                const hourCell = document.createElement('td');
+                hourCell.className = 'hour-cell';
+                hourCell.textContent = slot.time;
+                hourCell.style.cursor = 'pointer';
+                hourCell.onclick = function(e) {
+                    e.stopPropagation();
+                    showHourScrollSelector(this, slot.time, date, slot.patient);
+                };
+                row.appendChild(hourCell);
+                // --- Paciente ---
                 if (slot.patient) {
-                    row.innerHTML = `
-                        <td>${slot.time}</td>
-                        <td class="patient-cell">${slot.patient}</td>
-                        <td>
-                            <button class="edit-btn ocupado-btn" onclick="editAppointment('${slot.time}', '${date}')">Ocupado</button>
-                            <button class="whatsapp-btn" style="background:#25d366;color:#fff;border:none;border-radius:5px;padding:5px 10px;margin-left:5px;cursor:pointer;" onclick="openWhatsApp()">WhatsApp</button>
-                        </td>
+                    const patientCell = document.createElement('td');
+                    patientCell.className = 'patient-cell';
+                    patientCell.textContent = slot.patient;
+                    row.appendChild(patientCell);
+                    const actionsCell = document.createElement('td');
+                    actionsCell.innerHTML = `
+                        <button class="edit-btn ocupado-btn" onclick="editAppointment('${slot.time}', '${date}')">Ocupado</button>
+                        <button class="whatsapp-btn" style="background:#25d366;color:#fff;border:none;border-radius:5px;padding:5px 10px;margin-left:5px;cursor:pointer;" onclick="openWhatsApp()">WhatsApp</button>
                     `;
+                    row.appendChild(actionsCell);
                 } else {
-                    row.innerHTML = `
-                        <td>${slot.time}</td>
-                        <td>Libre</td>
-                        <td><button onclick="openForm('${slot.time}', '${date}')">Registrar</button></td>
-                    `;
+                    const libreCell = document.createElement('td');
+                    libreCell.textContent = 'Libre';
+                    row.appendChild(libreCell);
+                    const registrarCell = document.createElement('td');
+                    registrarCell.innerHTML = `<button onclick="openForm('${slot.time}', '${date}')">Registrar</button>`;
+                    row.appendChild(registrarCell);
                 }
                 tbody.appendChild(row);
             });
             afterScheduleRender();
         });
+}
+
+// --- Scroll selector de hora sobre la celda ---
+function showHourScrollSelector(cell, currentTime, date, patient) {
+    document.querySelectorAll('.hour-scroll-dropdown').forEach(el => el.remove());
+    const dropdown = document.createElement('div');
+    dropdown.className = 'hour-scroll-dropdown';
+    dropdown.style.position = 'absolute';
+    dropdown.style.background = '#fff';
+    dropdown.style.border = '1.5px solid #bdbdbd';
+    dropdown.style.borderRadius = '10px';
+    dropdown.style.boxShadow = '0 2px 12px #0002';
+    dropdown.style.zIndex = 3000;
+    dropdown.style.width = cell.offsetWidth + 30 + 'px';
+    dropdown.style.maxHeight = '260px';
+    dropdown.style.overflowY = 'auto';
+    // Posicionar justo sobre la celda
+    const rect = cell.getBoundingClientRect();
+    dropdown.style.left = rect.left + window.scrollX + 'px';
+    dropdown.style.top = rect.top + window.scrollY + 'px';
+    // Generar una sola lista continua cada 15 minutos (de 07:00 a 21:00)
+    for (let h = 7; h <= 21; h++) {
+        for (let m = 0; m < 60; m += 15) {
+            const hourStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            const opt = document.createElement('div');
+            opt.textContent = hourStr;
+            opt.className = 'hour-scroll-option';
+            opt.style.padding = '7px 12px';
+            opt.style.cursor = 'pointer';
+            opt.style.textAlign = 'center';
+            if (hourStr === currentTime) {
+                opt.style.background = '#ffe0b2';
+                opt.style.fontWeight = 'bold';
+            }
+            opt.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                if (patient) {
+                    if (!confirm('¿Desea cambiar la hora de este turno?')) return;
+                    if (hourStr !== currentTime) {
+                        // Cambiar la hora del turno: eliminar el actual y crear el nuevo SOLO si la hora está libre
+                        fetch('delete_appointment.php', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({appointment_time: currentTime, appointment_date: date})
+                        })
+                        .then(() => {
+                            fetch('save_appointment.php', {
+                                method: 'POST',
+                                body: new URLSearchParams({
+                                    appointment_time: hourStr,
+                                    appointment_date: date,
+                                    patient_name: patient
+                                })
+                            }).then(() => {
+                                dropdown.remove();
+                                loadSchedule(date);
+                            });
+                        });
+                    } else {
+                        dropdown.remove();
+                    }
+                } else {
+                    openForm(hourStr, date);
+                    dropdown.remove();
+                }
+            });
+            dropdown.appendChild(opt);
+        }
+    }
+    document.body.appendChild(dropdown);
+    setTimeout(() => {
+        const options = dropdown.querySelectorAll('.hour-scroll-option');
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].textContent === currentTime) {
+                dropdown.scrollTop = options[i].offsetTop - dropdown.clientHeight / 2 + options[i].clientHeight / 2;
+                break;
+            }
+        }
+    }, 50);
+    setTimeout(() => {
+        document.addEventListener('mousedown', function handler(ev) {
+            if (!dropdown.contains(ev.target)) {
+                dropdown.remove();
+                document.removeEventListener('mousedown', handler);
+            }
+        });
+    }, 50);
 }
 
 function openForm(time, date) {
