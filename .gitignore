@@ -1,1 +1,10 @@
+# Ignorar archivos y carpetas de bases de datos locales
 consultorio_db.sql
+*.sqlite
+*.db
+*.sql
+*.csv
+*.bak
+*.log
+# Ignorar archivos de configuración sensibles
+.env
