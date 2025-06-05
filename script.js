@@ -102,7 +102,7 @@ function loadSchedule(date) {
 }
 
 function openForm(time, date) {
-    document.getElementById("appointment_time").value = time;
+    document.getElementById("appointment_time").value = time || '';
     document.getElementById("appointment_date").value = date;
     document.getElementById("appointmentForm").style.display = "block";
 }

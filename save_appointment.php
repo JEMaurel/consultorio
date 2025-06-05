@@ -11,6 +11,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $obra = $_POST['obra_social'];
     $extra_days = isset($_POST['extra_days']) ? $_POST['extra_days'] : [];
 
+    // Verificar si ya existe un turno para esa fecha y hora
+    $check = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE appointment_date = '$date' AND appointment_time = '$time'");
+    $row = $check->fetch_assoc();
+    if ($row['c'] > 0) {
+        $conn->close();
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || !empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+            echo json_encode(['success' => false, 'error' => 'Ya existe un turno para ese horario.']);
+            exit;
+        }
+        header("Location: index.php?error=duplicado");
+        exit;
+    }
+
     // Eliminar turno existente para ese horario y fecha antes de insertar (permite editar)
     $conn->query("DELETE FROM appointments WHERE appointment_date = '$date' AND appointment_time = '$time'");
 

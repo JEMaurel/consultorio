@@ -120,8 +120,9 @@ toggleBtn.addEventListener('click', function(e) {
         <div class="modal-content">
             <span class="close" onclick="closeForm()">&times;</span>
             <h2>Registrar Paciente</h2>
-            <form action="save_appointment.php" method="POST">
-                <input type="hidden" id="appointment_time" name="appointment_time">
+            <form method="POST">
+                <label for="appointment_time">Hora:</label>
+                <input type="time" id="appointment_time" name="appointment_time" required>
                 <input type="hidden" id="appointment_date" name="appointment_date">
                 <label for="patient_name">Nombre del Paciente:</label>
                 <input type="text" id="patient_name" name="patient_name" required>
