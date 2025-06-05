@@ -1,8 +1,27 @@
+/* Google Fonts: Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* Elegante y legible: Usamos 'Inter', 'Roboto', 'Segoe UI', 'Arial', sans-serif */
+body, input, button, select, textarea, table {
+    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    color: #2d2d2d;
+    letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: 0.02em;
+}
+
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
     background-color: #f5ecd7;
+    background: #f8f6f2;
+    transition: background 0.3s;
 }
 
 .container {
@@ -25,6 +44,8 @@ body {
     padding: 10px;
     text-align: left;
     border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
 }
 
 .schedule th {
@@ -38,10 +59,15 @@ body {
     color: white;
     border: none;
     cursor: pointer;
+    box-shadow: 0 2px 8px #e0c9a650;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .schedule button:hover {
     background-color: #45a049;
+    background: #ffe0b2 !important;
+    color: #b85c00 !important;
+    box-shadow: 0 4px 16px #e0c9a6a0;
 }
 
 .calendar {
@@ -147,6 +173,8 @@ form button:hover {
     height: 60px;
     text-align: center;
     vertical-align: middle;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
 }
 
 #calendarTable td button {
@@ -203,6 +231,8 @@ form button:hover {
     border-radius: 8px;
     min-width: 250px;
     font-size: 15px;
+    box-shadow: 0 4px 24px #b8b8b840;
+    transition: box-shadow 0.2s;
 }
 .patient-data-form button {
     margin-right: 8px;
@@ -213,6 +243,106 @@ form button:hover {
     padding: 6px 16px;
     cursor: pointer;
 }
+
 .patient-data-form button.close-patient-form {
     background: #e53935;
+}
+
+.patient-cell {
+    font-weight: 600;
+    color: #3b3b3b;
+    font-weight: 700;
+    color: #2d5c8a;
+    font-size: 1.08em;
+    letter-spacing: 0.01em;
+}
+
+#monthTitle {
+    font-size: 1.3em;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+/* Mejoras visuales adicionales */
+#calendarBody td, #calendarBody th {
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+#calendarBody .calendar-day-btn.selected, #calendarBody .calendar-day-btn:hover {
+    background: #ffe0b2;
+    color: #b85c00;
+    box-shadow: 0 2px 8px #e0c9a6a0;
+    border-radius: 8px;
+}
+
+#scheduleBody tr {
+    transition: background 0.2s;
+}
+#scheduleBody tr:hover {
+    background: #f3e9d7;
+}
+
+button, .calendar-day-btn, .edit-btn, .ocupado-btn, .whatsapp-btn {
+    box-shadow: 0 2px 8px #e0c9a650;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+button:hover, .calendar-day-btn:hover, .edit-btn:hover, .ocupado-btn:hover, .whatsapp-btn:hover {
+    background: #ffe0b2 !important;
+    color: #b85c00 !important;
+    box-shadow: 0 4px 16px #e0c9a6a0;
+}
+
+/* Números y letras más estilizados */
+td, th, .calendar-day-btn {
+    font-variant-numeric: lining-nums proportional-nums;
+    font-feature-settings: "lnum", "pnum";
+}
+
+/* Sombra sutil para paneles y formularios */
+.patient-data-form, #appointmentForm, .autocomplete-dropdown {
+    box-shadow: 0 4px 24px #b8b8b840;
+    border-radius: 12px;
+    transition: box-shadow 0.2s;
+}
+
+/* Animación de aparición */
+.patient-data-form, #appointmentForm, .autocomplete-dropdown {
+    animation: fadeInUp 0.25s cubic-bezier(.4,1.4,.6,1) both;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mejorar el textarea de info */
+.patient-data-form textarea {
+    border-radius: 8px;
+    border: 1.5px solid #e0c9a6;
+    background: #fff9f2;
+    font-size: 1em;
+    padding: 8px;
+    transition: border 0.2s;
+}
+.patient-data-form textarea:focus {
+    border: 1.5px solid #b85c00;
+    outline: none;
+}
+
+/* Mejorar área de foto */
+#photo-drop-area {
+    border-radius: 10px;
+    background: #fff9f2;
+    border: 2px dashed #e0c9a6;
+    color: #b85c00;
+    font-size: 1em;
+    transition: background 0.2s, border 0.2s;
+}
+#photo-drop-area:hover {
+    background: #fff3e0;
+    border-color: #b85c00;
+}
+#photo-drop-area img {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #e0c9a650;
 }
