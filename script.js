@@ -387,6 +387,60 @@ function afterScheduleRender() {
     setupPatientAutocomplete();
 }
 
+// --- AUTOCOMPLETADO INTELIGENTE EN EL FORMULARIO DE REGISTRO ---
+document.addEventListener('DOMContentLoaded', function() {
+    const patientInput = document.getElementById('patient_name');
+    if (patientInput) {
+        let dropdown;
+        patientInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val.length === 0) {
+                if (dropdown) dropdown.remove();
+                return;
+            }
+            fetch('autocomplete_patient.php?q=' + encodeURIComponent(val))
+                .then(r => r.json())
+                .then(suggestions => {
+                    if (dropdown) dropdown.remove();
+                    if (!suggestions.length) return;
+                    dropdown = document.createElement('div');
+                    dropdown.className = 'autocomplete-dropdown';
+                    dropdown.style.position = 'absolute';
+                    dropdown.style.background = '#fff';
+                    dropdown.style.border = '1px solid #ccc';
+                    dropdown.style.zIndex = 1002;
+                    dropdown.style.width = patientInput.offsetWidth + 'px';
+                    dropdown.style.maxHeight = '200px';
+                    dropdown.style.overflowY = 'auto';
+                    // Posicionar debajo del input
+                    const rect = patientInput.getBoundingClientRect();
+                    dropdown.style.left = rect.left + window.scrollX + 'px';
+                    dropdown.style.top = rect.bottom + window.scrollY + 'px';
+                    suggestions.forEach(name => {
+                        const opt = document.createElement('div');
+                        opt.textContent = name;
+                        opt.className = 'autocomplete-option';
+                        opt.style.padding = '4px 8px';
+                        opt.style.cursor = 'pointer';
+                        opt.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            patientInput.value = name;
+                            dropdown.remove();
+                        });
+                        dropdown.appendChild(opt);
+                    });
+                    document.body.appendChild(dropdown);
+                });
+        });
+        // Cerrar dropdown si se hace click fuera
+        document.addEventListener('mousedown', function handler(e) {
+            if (dropdown && !dropdown.contains(e.target) && e.target !== patientInput) {
+                dropdown.remove();
+            }
+        });
+    }
+});
+
 function openWhatsApp() {
     window.open('https://web.whatsapp.com/', '_blank');
 }
