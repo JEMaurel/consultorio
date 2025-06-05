@@ -286,28 +286,71 @@ function showPatientDataForm(name, parentDropdown) {
             if (parentDropdown && parentDropdown.getBoundingClientRect) {
                 const parentRect = parentDropdown.getBoundingClientRect();
                 left = Math.max(10, Math.min(window.innerWidth - 350, parentRect.left));
-                top = Math.max(10, Math.min(window.innerHeight - 250, parentRect.bottom + 5));
+                top = Math.max(10, Math.min(window.innerHeight - 350, parentRect.bottom + 5));
             }
             form.style.left = left + 'px';
             form.style.top = top + 'px';
             form.style.zIndex = 1002;
             form.innerHTML = `
                 <strong>Paciente:</strong> <span>${name}</span><br>
-                <label>Historia clínica:<br><textarea rows="4" style="width:98%">${data.history || ''}</textarea></label><br>
-                <label>Datos adicionales:<br><textarea rows="2" style="width:98%">${data.data || ''}</textarea></label><br>
+                <label>Información:<br><textarea rows="5" style="width:98%">${data.history || ''}</textarea></label><br>
+                <div id="photo-drop-area" style="border:1.5px dashed #aaa;padding:10px;text-align:center;margin:10px 0;cursor:pointer;background:#fff;">
+                    <span id="photo-icon" style="font-size:28px;">📷</span><br>
+                    <span id="photo-text">Arrastrar foto aquí o haz clic para seleccionar</span>
+                    <input type="file" accept="image/*" style="display:none">
+                    <div id="photo-preview" style="margin-top:8px;"></div>
+                </div>
                 <button>Guardar</button>
                 <button type="button" class="close-patient-form">Cerrar</button>
             `;
             document.body.appendChild(form);
+
+            // --- FOTO ---
+            const dropArea = form.querySelector('#photo-drop-area');
+            const fileInput = dropArea.querySelector('input[type="file"]');
+            const preview = dropArea.querySelector('#photo-preview');
+            // Mostrar imagen previa si existe (data.data)
+            if (data.data && data.data.startsWith('data:image/')) {
+                preview.innerHTML = `<img src="${data.data}" style="max-width:120px;max-height:120px;display:block;margin:auto;">`;
+            }
+            // Drag & drop
+            dropArea.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.background='#e0e0e0'; });
+            dropArea.addEventListener('dragleave', e => { e.preventDefault(); dropArea.style.background='#fff'; });
+            dropArea.addEventListener('drop', e => {
+                e.preventDefault();
+                dropArea.style.background='#fff';
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    showPreview(fileInput.files[0]);
+                }
+            });
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    showPreview(fileInput.files[0]);
+                }
+            });
+            function showPreview(file) {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `<img src="${e.target.result}" style="max-width:120px;max-height:120px;display:block;margin:auto;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+
             // Guardar
             form.querySelector('button').onclick = function(ev) {
                 ev.preventDefault();
-                const history = form.querySelectorAll('textarea')[0].value;
-                const other = form.querySelectorAll('textarea')[1].value;
+                const info = form.querySelector('textarea').value;
+                // Si hay imagen, la subimos como base64 (simple para demo, idealmente usar backend y guardar archivo)
+                let imgData = '';
+                const img = preview.querySelector('img');
+                if (img) imgData = img.src;
                 fetch('save_patient_data.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({name, history, data: other})
+                    body: JSON.stringify({name, history: info, data: imgData})
                 })
                 .then(r => r.json())
                 .then(resp => {
@@ -324,6 +367,18 @@ function showPatientDataForm(name, parentDropdown) {
             form.querySelector('.close-patient-form').onclick = function() {
                 form.remove();
             };
+            // Evitar cierre al hacer click dentro del panel o en cualquier hijo
+            form.addEventListener('mousedown', function(ev) { ev.stopPropagation(); });
+            // Cerrar solo si se hace click fuera del panel y del dropdown
+            setTimeout(() => {
+                document.addEventListener('mousedown', function handler(ev) {
+                    if (!form.contains(ev.target) && !(parentDropdown && parentDropdown.contains(ev.target))) {
+                        form.remove();
+                        if(parentDropdown) parentDropdown.remove();
+                        document.removeEventListener('mousedown', handler);
+                    }
+                });
+            }, 100);
         });
 }
 
