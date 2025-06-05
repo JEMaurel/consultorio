@@ -536,16 +536,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 .then(r => r.json())
                                 .then(data => {
                                     let html = `<strong>Nombre:</strong> ${name}<br>`;
-                                    if (data.history) {
-                                        html += `<strong>Historia clínica:</strong><br><pre style='white-space:pre-wrap;background:#f8f6f2;padding:8px;border-radius:7px;'>${data.history}</pre>`;
-                                    }
-                                    if (data.obra_social) {
-                                        html += `<strong>Obra Social:</strong> ${data.obra_social}<br>`;
-                                    }
+                                    html += `<strong>Historia clínica:</strong><br>`;
+                                    html += `<textarea id='edit-historia-clinica' rows='5' style='width:98%;border-radius:8px;border:1.5px solid #e0c9a6;background:#fff9f2;font-size:1em;padding:8px;'>${data.history ? data.history.replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''}</textarea><br>`;
+                                    html += `<strong>Obra Social:</strong> <input type='text' id='edit-obra-social' value='${data.obra_social ? data.obra_social.replace(/'/g,"&#39;") : ''}' style='width:90%;border-radius:8px;border:1.5px solid #e0c9a6;background:#fff9f2;font-size:1em;padding:6px;margin-bottom:6px;'><br>`;
                                     if (data.data && data.data.startsWith('data:image/')) {
                                         html += `<img src='${data.data}' style='max-width:120px;max-height:120px;display:block;margin:10px auto;'>`;
                                     }
+                                    html += `<button id='guardar-edicion-paciente' style='margin-top:8px;background:#ffa726;color:#fff;border:none;border-radius:8px;padding:7px 18px;font-weight:bold;cursor:pointer;'>Guardar</button>`;
                                     datosDiv.innerHTML = html;
+                                    // Guardar cambios
+                                    document.getElementById('guardar-edicion-paciente').onclick = function() {
+                                        const nuevaHistoria = document.getElementById('edit-historia-clinica').value;
+                                        const nuevaObra = document.getElementById('edit-obra-social').value;
+                                        fetch('save_patient_data.php', {
+                                            method: 'POST',
+                                            headers: {'Content-Type': 'application/json'},
+                                            body: JSON.stringify({name: name, history: nuevaHistoria, data: data.data || ''})
+                                        })
+                                        .then(r => r.json())
+                                        .then(resp => {
+                                            if (resp.success) {
+                                                alert('Datos actualizados');
+                                                datosDiv.innerHTML = `<span style='color:green;'>Datos guardados correctamente.</span>`;
+                                            } else {
+                                                alert('Error al guardar');
+                                            }
+                                        });
+                                    };
                                 });
                         });
                         resultadosDiv.appendChild(opt);
