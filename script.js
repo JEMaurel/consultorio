@@ -482,3 +482,75 @@ document.addEventListener('DOMContentLoaded', function() {
 function openWhatsApp() {
     window.open('https://web.whatsapp.com/', '_blank');
 }
+
+// --- BUSCADOR INTELIGENTE DE PACIENTES GLOBAL ---
+document.addEventListener('DOMContentLoaded', function() {
+    const btnBuscarPaciente = document.getElementById('btn-buscar-paciente');
+    const modal = document.getElementById('buscador-paciente-modal');
+    const cerrarBtn = document.getElementById('cerrar-buscador-paciente');
+    const inputBuscar = document.getElementById('input-buscar-paciente');
+    const resultadosDiv = document.getElementById('resultados-buscar-paciente');
+    const datosDiv = document.getElementById('datos-paciente-buscado');
+
+    if (btnBuscarPaciente && modal && cerrarBtn && inputBuscar && resultadosDiv && datosDiv) {
+        btnBuscarPaciente.onclick = function() {
+            modal.style.display = 'flex';
+            inputBuscar.value = '';
+            resultadosDiv.innerHTML = '';
+            datosDiv.innerHTML = '';
+            inputBuscar.focus();
+        };
+        cerrarBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+        modal.addEventListener('mousedown', function(e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        inputBuscar.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val.length < 1) {
+                resultadosDiv.innerHTML = '';
+                datosDiv.innerHTML = '';
+                return;
+            }
+            fetch('autocomplete_patient.php?q=' + encodeURIComponent(val))
+                .then(r => r.json())
+                .then(suggestions => {
+                    resultadosDiv.innerHTML = '';
+                    datosDiv.innerHTML = '';
+                    if (!suggestions.length) {
+                        resultadosDiv.innerHTML = '<div style="color:#888;padding:8px;">No se encontraron pacientes</div>';
+                        return;
+                    }
+                    suggestions.forEach(name => {
+                        const opt = document.createElement('div');
+                        opt.textContent = name;
+                        opt.className = 'autocomplete-option';
+                        opt.style.padding = '6px 10px';
+                        opt.style.cursor = 'pointer';
+                        opt.style.borderRadius = '7px';
+                        opt.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            // Buscar datos completos del paciente
+                            fetch('get_patient_data.php?patient=' + encodeURIComponent(name))
+                                .then(r => r.json())
+                                .then(data => {
+                                    let html = `<strong>Nombre:</strong> ${name}<br>`;
+                                    if (data.history) {
+                                        html += `<strong>Historia clínica:</strong><br><pre style='white-space:pre-wrap;background:#f8f6f2;padding:8px;border-radius:7px;'>${data.history}</pre>`;
+                                    }
+                                    if (data.obra_social) {
+                                        html += `<strong>Obra Social:</strong> ${data.obra_social}<br>`;
+                                    }
+                                    if (data.data && data.data.startsWith('data:image/')) {
+                                        html += `<img src='${data.data}' style='max-width:120px;max-height:120px;display:block;margin:10px auto;'>`;
+                                    }
+                                    datosDiv.innerHTML = html;
+                                });
+                        });
+                        resultadosDiv.appendChild(opt);
+                    });
+                });
+        });
+    }
+});

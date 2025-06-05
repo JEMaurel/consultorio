@@ -145,6 +145,19 @@ toggleBtn.addEventListener('click', function(e) {
         </div>
     </div>
 
+    <!-- Botón pequeño 'P' para buscar pacientes -->
+<button id="btn-buscar-paciente" title="Buscar paciente" style="position:fixed;top:18px;right:18px;z-index:1200;width:32px;height:32px;border-radius:50%;background:#ffa726;color:#fff;font-weight:bold;font-size:18px;border:none;box-shadow:0 2px 8px #e0c9a650;cursor:pointer;">P</button>
+<!-- Buscador de pacientes (oculto por defecto) -->
+<div id="buscador-paciente-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:1201;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:24px 18px 18px 18px;border-radius:14px;max-width:350px;width:95vw;box-shadow:0 4px 24px #b8b8b840;position:relative;">
+    <button id="cerrar-buscador-paciente" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:20px;color:#e53935;cursor:pointer;">&times;</button>
+    <h3 style="margin-top:0;font-size:1.1em;">Buscar paciente</h3>
+    <input type="text" id="input-buscar-paciente" placeholder="Nombre del paciente..." style="width:100%;padding:8px 10px;margin-bottom:10px;border-radius:8px;border:1.5px solid #e0c9a6;font-size:1em;">
+    <div id="resultados-buscar-paciente" style="max-height:180px;overflow-y:auto;"></div>
+    <div id="datos-paciente-buscado" style="margin-top:12px;"></div>
+  </div>
+</div>
+
     <script src="script.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
