@@ -11,11 +11,14 @@ $table_sql = "CREATE TABLE IF NOT EXISTS patients (\n    name VARCHAR(255) PRIMA
 $conn->query($table_sql);
 
 $q = isset($_GET['q']) ? $conn->real_escape_string($_GET['q']) : '';
-$sql = "SELECT DISTINCT name FROM patients WHERE name LIKE '%$q%' ORDER BY name ASC LIMIT 10";
-$result = $conn->query($sql);
 $suggestions = [];
-while ($row = $result->fetch_assoc()) {
-    $suggestions[] = $row['name'];
+if ($q !== '') {
+    // Buscar por LIKE y también por SOUNDEX para mayor flexibilidad
+    $sql = "SELECT DISTINCT name FROM patients WHERE name LIKE '%$q%' OR SOUNDEX(name) = SOUNDEX('$q') ORDER BY name ASC LIMIT 15";
+    $result = $conn->query($sql);
+    while ($row = $result->fetch_assoc()) {
+        $suggestions[] = $row['name'];
+    }
 }
 echo json_encode($suggestions);
 $conn->close();
