@@ -95,6 +95,103 @@ function loadSchedule(date) {
                     patientCell.className = 'patient-cell';
                     patientCell.textContent = slot.patient;
                     row.appendChild(patientCell);
+                    // --- Celda de sesiones (aparte, no dentro del nombre) ---
+                    const sesionesCell = document.createElement('td');
+                    sesionesCell.className = 'sesiones-cell';
+                    // Holder de sesiones realizadas
+                    const sesionesRealizadas = document.createElement('input');
+                    sesionesRealizadas.type = 'text';
+                    sesionesRealizadas.maxLength = 2;
+                    sesionesRealizadas.placeholder = '0';
+                    sesionesRealizadas.className = 'sesiones-holder';
+                    sesionesRealizadas.title = 'Sesiones realizadas';
+                    sesionesRealizadas.style.width = '24px';
+                    sesionesRealizadas.style.textAlign = 'center';
+                    // Holder de sesiones totales
+                    const sesionesTotales = document.createElement('input');
+                    sesionesTotales.type = 'text';
+                    sesionesTotales.maxLength = 2;
+                    sesionesTotales.placeholder = '0';
+                    sesionesTotales.className = 'sesiones-holder-total';
+                    sesionesTotales.title = 'Sesiones indicadas';
+                    sesionesTotales.style.width = '24px';
+                    sesionesTotales.style.textAlign = 'center';
+                    // Separador visual
+                    const barra = document.createElement('span');
+                    barra.textContent = '/';
+                    barra.style.margin = '0 2px';
+                    // Obtener sesiones desde la historia clínica
+                    fetch('get_patient_data.php?patient=' + encodeURIComponent(slot.patient))
+                        .then(r => r.json())
+                        .then(data => {
+                            let realizadas = '';
+                            let totales = '';
+                            if (data.history) {
+                                // Busca formato "Sesiones: 5/7" o "5/7 sesiones"
+                                let match = data.history.match(/Sesiones:\s*(\d{1,2})\s*\/\s*(\d{1,2})/i);
+                                if (!match) match = data.history.match(/(\d{1,2})\s*\/\s*(\d{1,2})\s*sesiones?/i);
+                                if (match) {
+                                    realizadas = match[1];
+                                    totales = match[2];
+                                } else {
+                                    // Alternativamente busca solo realizadas
+                                    let match2 = data.history.match(/Sesiones:\s*(\d{1,2})/i);
+                                    if (match2) realizadas = match2[1];
+                                }
+                            }
+                            sesionesRealizadas.value = realizadas;
+                            sesionesTotales.value = totales;
+                        });
+                    // Guardar al salir de los inputs
+                    function guardarSesiones() {
+                        let valRealizadas = sesionesRealizadas.value.replace(/\D/g, '');
+                        let valTotales = sesionesTotales.value.replace(/\D/g, '');
+                        if (valRealizadas.length > 2) valRealizadas = valRealizadas.slice(0,2);
+                        if (valTotales.length > 2) valTotales = valTotales.slice(0,2);
+                        sesionesRealizadas.value = valRealizadas;
+                        sesionesTotales.value = valTotales;
+                        fetch('get_patient_data.php?patient=' + encodeURIComponent(slot.patient))
+                            .then(r => r.json())
+                            .then(data => {
+                                let newHistory = data.history || '';
+                                // Eliminar cualquier línea previa de sesiones
+                                newHistory = newHistory.replace(/^.*Sesiones:.*$/gmi, '').replace(/(\d{1,2})\s*\/\s*\d{1,2}\s*sesiones?.*$/gmi, '');
+                                newHistory = newHistory.trim();
+                                // Agregar la nueva línea de sesiones al final
+                                if (newHistory) newHistory += '\n';
+                                newHistory += 'Sesiones: ' + valRealizadas + (valTotales ? '/' + valTotales : '');
+                                fetch('save_patient_data.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({name: slot.patient, history: newHistory, data: data.data || ''})
+                                });
+                                // --- Sincronizar sector P si está abierto y corresponde al paciente ---
+                                const patientForms = document.querySelectorAll('.patient-data-form');
+                                patientForms.forEach(form => {
+                                    const nameSpan = form.querySelector('strong + span');
+                                    if (nameSpan && nameSpan.textContent === slot.patient) {
+                                        // Actualizar textarea de historia clínica
+                                        const textarea = form.querySelector('textarea');
+                                        if (textarea) textarea.value = newHistory;
+                                        // Actualizar inputs de sesiones si existen en el form
+                                        const match = newHistory.match(/Sesiones:\s*(\d{1,2})\s*\/\s*(\d{1,2})/i);
+                                        if (match) {
+                                            const inputRealizadas = form.querySelector('.sesiones-holder');
+                                            const inputTotales = form.querySelector('.sesiones-holder-total');
+                                            if (inputRealizadas) inputRealizadas.value = match[1];
+                                            if (inputTotales) inputTotales.value = match[2];
+                                        }
+                                    }
+                                });
+                            });
+                    }
+                    sesionesRealizadas.addEventListener('blur', guardarSesiones);
+                    sesionesTotales.addEventListener('blur', guardarSesiones);
+                    sesionesCell.appendChild(sesionesRealizadas);
+                    sesionesCell.appendChild(barra);
+                    sesionesCell.appendChild(sesionesTotales);
+                    row.appendChild(sesionesCell);
+                    // --- Acciones ---
                     const actionsCell = document.createElement('td');
                     actionsCell.innerHTML = `
                         <button class="edit-btn ocupado-btn" onclick="editAppointment('${slot.time}', '${date}')">Ocupado</button>
@@ -105,6 +202,9 @@ function loadSchedule(date) {
                     const libreCell = document.createElement('td');
                     libreCell.textContent = 'Libre';
                     row.appendChild(libreCell);
+                    // Celda vacía para sesiones
+                    const sesionesCell = document.createElement('td');
+                    row.appendChild(sesionesCell);
                     const registrarCell = document.createElement('td');
                     registrarCell.innerHTML = `<button onclick="openForm('${slot.time}', '${date}')">Registrar</button>`;
                     row.appendChild(registrarCell);

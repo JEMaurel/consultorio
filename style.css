@@ -389,3 +389,19 @@ td, th, .calendar-day-btn {
     background: #ffe0e0;
     color: #b85c00;
 }
+
+.sesiones-cell input[type="number"] {
+    border: 1.5px solid #e0c9a6;
+    border-radius: 8px;
+    background: #fff9f2;
+    font-size: 1em;
+    padding: 2px 0;
+    width: 38px;
+    text-align: center;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+.sesiones-cell input[type="number"]:focus {
+    outline: 2px solid #ffa726;
+    border-color: #ffa726;
+}
