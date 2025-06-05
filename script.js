@@ -281,19 +281,16 @@ function showPatientDataForm(name, parentDropdown) {
             form.style.padding = '12px';
             form.style.marginTop = '5px';
             form.style.position = 'fixed';
-            // Calcular posición relativa a la ventana
-            let left = 40, top = 40;
-            if (parentDropdown && parentDropdown.getBoundingClientRect) {
-                const parentRect = parentDropdown.getBoundingClientRect();
-                left = Math.max(10, Math.min(window.innerWidth - 350, parentRect.left));
-                top = Math.max(10, Math.min(window.innerHeight - 350, parentRect.bottom + 5));
-            }
-            form.style.left = left + 'px';
-            form.style.top = top + 'px';
+            form.style.left = '50%';
+            form.style.top = '10vh';
+            form.style.transform = 'translateX(-50%)';
+            form.style.maxHeight = '80vh';
+            form.style.overflowY = 'auto';
             form.style.zIndex = 1002;
             form.innerHTML = `
                 <strong>Paciente:</strong> <span>${name}</span><br>
-                <label>Información:<br><textarea rows="5" style="width:98%">${data.history || ''}</textarea></label><br>
+                <label>Historia clínica:<br><textarea rows="5" style="width:98%">${data.history || ''}</textarea></label><br>
+                <label>Obra Social:<br><input type="text" id="obra-social-input" style="width:98%" value="${(data.obra_social || (data.history && data.history.match(/Obra Social:\s*(.+)/i) ? data.history.match(/Obra Social:\s*(.+)/i)[1] : ''))}"></label><br>
                 <div id="photo-drop-area" style="border:1.5px dashed #aaa;padding:10px;text-align:center;margin:10px 0;cursor:pointer;background:#fff;">
                     <span id="photo-icon" style="font-size:28px;">📷</span><br>
                     <span id="photo-text">Arrastrar foto aquí o haz clic para seleccionar</span>
@@ -343,14 +340,24 @@ function showPatientDataForm(name, parentDropdown) {
             form.querySelector('button').onclick = function(ev) {
                 ev.preventDefault();
                 const info = form.querySelector('textarea').value;
+                const obraSocial = form.querySelector('#obra-social-input').value;
                 // Si hay imagen, la subimos como base64 (simple para demo, idealmente usar backend y guardar archivo)
                 let imgData = '';
                 const img = preview.querySelector('img');
                 if (img) imgData = img.src;
+                // Insertar/actualizar obra social en el primer renglón de la historia clínica
+                let newHistory = info;
+                if (obraSocial) {
+                    if (/Obra Social:/i.test(newHistory)) {
+                        newHistory = newHistory.replace(/Obra Social:.*/i, 'Obra Social: ' + obraSocial);
+                    } else {
+                        newHistory = 'Obra Social: ' + obraSocial + '\n' + newHistory;
+                    }
+                }
                 fetch('save_patient_data.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({name, history: info, data: imgData})
+                    body: JSON.stringify({name, history: newHistory, data: imgData})
                 })
                 .then(r => r.json())
                 .then(resp => {
@@ -431,11 +438,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 .then(r => r.json())
                                 .then(data => {
                                     if (obraInput) {
-                                        if (data && data.obra_social) {
-                                            obraInput.value = data.obra_social;
-                                        } else {
-                                            obraInput.value = '';
+                                        // Si no hay obra_social en la respuesta, intentar extraerla del primer renglón de la historia clínica
+                                        let obra = data.obra_social;
+                                        if ((!obra || obra === '') && data.history) {
+                                            const match = data.history.match(/Obra Social:\s*(.+)/i);
+                                            if (match) obra = match[1].trim();
                                         }
+                                        obraInput.value = obra || '';
                                     }
                                     // Si hay historia clínica, podrías autocompletar otros campos aquí
                                 });
@@ -458,22 +467,22 @@ document.addEventListener('DOMContentLoaded', function() {
         appointmentForm.addEventListener('submit', function(e) {
             const name = patientInput.value.trim();
             const obra = obraInput.value.trim();
-            if (name && obra) {
-                // Consultar si ya existe historia clínica
-                fetch('get_patient_data.php?patient=' + encodeURIComponent(name))
-                    .then(r => r.json())
-                    .then(data => {
-                        let history = data.history || '';
-                        // Si la historia no contiene la obra social, agregarla al principio
-                        if (!history.includes('Obra Social:')) {
-                            history = 'Obra Social: ' + obra + '\n' + history;
-                            fetch('save_patient_data.php', {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'},
-                                body: JSON.stringify({name: name, history: history, data: data.data || ''})
-                            });
-                        }
-                    });
+            const info = document.querySelector('#appointmentForm textarea') ? document.querySelector('#appointmentForm textarea').value : '';
+            // Insertar/actualizar obra social en el primer renglón de la historia clínica
+            let newHistory = info;
+            if (obra) {
+                if (/Obra Social:/i.test(newHistory)) {
+                    newHistory = newHistory.replace(/Obra Social:.*/i, 'Obra Social: ' + obra);
+                } else {
+                    newHistory = 'Obra Social: ' + obra + '\n' + newHistory;
+                }
+            }
+            if (name) {
+                fetch('save_patient_data.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name, history: newHistory, data: ''})
+                });
             }
         });
     }
@@ -548,10 +557,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     document.getElementById('guardar-edicion-paciente').onclick = function() {
                                         const nuevaHistoria = document.getElementById('edit-historia-clinica').value;
                                         const nuevaObra = document.getElementById('edit-obra-social').value;
+                                        // Insertar/actualizar obra social en el primer renglón de la historia clínica
+                                        let newHistory = nuevaHistoria;
+                                        if (nuevaObra) {
+                                            if (/Obra Social:/i.test(newHistory)) {
+                                                newHistory = newHistory.replace(/Obra Social:.*/i, 'Obra Social: ' + nuevaObra);
+                                            } else {
+                                                newHistory = 'Obra Social: ' + nuevaObra + '\n' + newHistory;
+                                            }
+                                        }
                                         fetch('save_patient_data.php', {
                                             method: 'POST',
                                             headers: {'Content-Type': 'application/json'},
-                                            body: JSON.stringify({name: name, history: nuevaHistoria, data: data.data || ''})
+                                            body: JSON.stringify({name: name, history: newHistory, data: data.data || ''})
                                         })
                                         .then(r => r.json())
                                         .then(resp => {

@@ -7,15 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <!-- Chat con IA -->
-<div id="chat-ia" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 10px; transition: height 0.3s, min-height 0.3s; min-height: 40px; z-index: 1000;">
-    <div id="ia-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-        <h4 style="margin: 0;">Consulta IA</h4>
-        <button id="toggle-ia" style="background: none; border: none; font-size: 18px; cursor: pointer;">&#x2212;</button>
+<div id="chat-ia" style="position: fixed; bottom: 20px; right: 70px; width: 300px; background: white; border: 1.5px solid #ffa726; padding: 0; transition: height 0.3s, min-height 0.3s, width 0.3s, box-shadow 0.3s, right 0.3s; min-height: 40px; z-index: 1000; overflow: hidden; border-radius: 18px; box-shadow: 0 4px 24px #b8b8b840;">
+    <div id="ia-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: linear-gradient(90deg,#ffa726 60%,#ffd180 100%); border-radius: 18px 18px 0 0; padding: 8px 14px;">
+        <h4 id="ia-title" style="margin: 0; color: #fff; font-weight: 700; font-size: 1.1em; letter-spacing: 0.04em;">IA</h4>
+        <button id="toggle-ia" style="background: none; border: none; font-size: 20px; color: #fff; cursor: pointer; font-weight: bold;">&#x2212;</button>
     </div>
-    <div id="ia-content">
-        <div id="respuesta-ia" style="height: 200px; overflow-y: scroll; border: 1px solid #eee; padding: 5px; margin: 10px 0;"></div>
-        <input type="text" id="pregunta-ia" placeholder="Pregunta algo..." style="width: 70%;">
-        <button onclick="consultarIA()" style="width: 25%;">Enviar</button>
+    <div id="ia-content" style="padding: 10px 12px 12px 12px; background: #fffbe9; border-radius: 0 0 18px 18px;">
+        <div id="respuesta-ia" style="height: 200px; overflow-y: scroll; border: 1px solid #ffe0b2; background: #fff; padding: 7px; margin: 10px 0; border-radius: 10px; font-size: 0.98em;"></div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" id="pregunta-ia" placeholder="Pregunta algo..." style="flex:1; padding: 8px 10px; border-radius: 8px; border: 1.5px solid #ffa726; font-size: 1em; background: #fff9f2;">
+            <button onclick="consultarIA()" style="padding: 8px 16px; border-radius: 8px; background: #ffa726; color: #fff; font-weight: bold; border: none; font-size: 1em; box-shadow: 0 2px 8px #e0c9a650; transition: background 0.2s;">Enviar</button>
+        </div>
     </div>
 </div>
 
@@ -55,20 +57,55 @@ if (inputIA) {
 const iaPanel = document.getElementById('chat-ia');
 const iaContent = document.getElementById('ia-content');
 const toggleBtn = document.getElementById('toggle-ia');
+const iaTitle = document.getElementById('ia-title');
 let iaMinimized = false;
-toggleBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    iaMinimized = !iaMinimized;
+function setIAMinimized(minimized) {
+    iaMinimized = minimized;
     if (iaMinimized) {
         iaContent.style.display = 'none';
-        toggleBtn.innerHTML = '&#x25A1;'; // icono expandir
-        iaPanel.style.minHeight = '40px';
+        toggleBtn.style.display = 'none';
+        iaPanel.style.width = '60px';
+        iaPanel.style.minHeight = '36px';
+        iaPanel.style.height = '36px';
+        iaTitle.textContent = 'IA';
+        iaPanel.style.cursor = 'pointer';
+        iaPanel.style.background = 'linear-gradient(90deg,#ffa726 60%,#ffd180 100%)';
+        iaPanel.style.boxShadow = '0 2px 8px #e0c9a650';
+        iaPanel.style.borderRadius = '18px';
+        iaTitle.style.color = '#fff';
+        iaTitle.style.fontWeight = '700';
+        iaTitle.style.fontSize = '1.1em';
+        iaTitle.style.letterSpacing = '0.04em';
+        iaHeader.style.justifyContent = 'center';
     } else {
         iaContent.style.display = 'block';
-        toggleBtn.innerHTML = '&#x2212;'; // icono minimizar
+        toggleBtn.style.display = 'inline-block';
+        iaPanel.style.width = '300px';
         iaPanel.style.minHeight = '';
+        iaPanel.style.height = '';
+        iaTitle.textContent = 'Consulta IA';
+        iaPanel.style.cursor = '';
+        iaPanel.style.background = '#fff';
+        iaPanel.style.boxShadow = '0 4px 24px #b8b8b840';
+        iaPanel.style.borderRadius = '18px';
+        iaTitle.style.color = '#ffa726';
+        iaTitle.style.fontWeight = '700';
+        iaTitle.style.fontSize = '1.1em';
+        iaTitle.style.letterSpacing = '0.04em';
+        iaHeader.style.justifyContent = 'space-between';
+    }
+}
+const iaHeader = document.getElementById('ia-header');
+toggleBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    setIAMinimized(true);
+});
+iaPanel.addEventListener('click', function(e) {
+    if (iaMinimized) {
+        setIAMinimized(false);
     }
 });
+setIAMinimized(true);
 </script>
 <body>
     <div class="container">
@@ -146,7 +183,7 @@ toggleBtn.addEventListener('click', function(e) {
     </div>
 
     <!-- Botón pequeño 'P' para buscar pacientes -->
-<button id="btn-buscar-paciente" title="Buscar paciente" style="position:fixed;top:18px;right:18px;z-index:1200;width:32px;height:32px;border-radius:50%;background:#ffa726;color:#fff;font-weight:bold;font-size:18px;border:none;box-shadow:0 2px 8px #e0c9a650;cursor:pointer;">P</button>
+<button id="btn-buscar-paciente" title="Buscar paciente" style="position:absolute;top:18px;right:68px;z-index:1200;width:32px;height:32px;border-radius:50%;background:#ffa726;color:#fff;font-weight:bold;font-size:18px;border:none;box-shadow:0 2px 8px #e0c9a650;cursor:pointer;">P</button>
 <!-- Buscador de pacientes (oculto por defecto) -->
 <div id="buscador-paciente-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:1201;align-items:center;justify-content:center;">
   <div style="background:#fff;padding:24px 18px 18px 18px;border-radius:14px;max-width:350px;width:95vw;box-shadow:0 4px 24px #b8b8b840;position:relative;">
