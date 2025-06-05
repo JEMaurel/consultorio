@@ -120,28 +120,37 @@ function loadSchedule(date) {
                     const barra = document.createElement('span');
                     barra.textContent = '/';
                     barra.style.margin = '0 2px';
-                    // Obtener sesiones desde la historia clínica
-                    fetch('get_patient_data.php?patient=' + encodeURIComponent(slot.patient))
-                        .then(r => r.json())
-                        .then(data => {
-                            let realizadas = '';
-                            let totales = '';
-                            if (data.history) {
-                                // Busca formato "Sesiones: 5/7" o "5/7 sesiones"
-                                let match = data.history.match(/Sesiones:\s*(\d{1,2})\s*\/\s*(\d{1,2})/i);
-                                if (!match) match = data.history.match(/(\d{1,2})\s*\/\s*(\d{1,2})\s*sesiones?/i);
-                                if (match) {
-                                    realizadas = match[1];
-                                    totales = match[2];
-                                } else {
-                                    // Alternativamente busca solo realizadas
-                                    let match2 = data.history.match(/Sesiones:\s*(\d{1,2})/i);
-                                    if (match2) realizadas = match2[1];
+                    // --- Cargar sesiones desde LocalStorage o historia clínica ---
+                    const localKey = `sesiones_${slot.patient}_${date}_${slot.time}`;
+                    let localSesiones = localStorage.getItem(localKey);
+                    if (localSesiones) {
+                        try {
+                            const obj = JSON.parse(localSesiones);
+                            sesionesRealizadas.value = obj.realizadas || '';
+                            sesionesTotales.value = obj.totales || '';
+                        } catch(e) {}
+                    } else {
+                        // Obtener sesiones desde la historia clínica
+                        fetch('get_patient_data.php?patient=' + encodeURIComponent(slot.patient))
+                            .then(r => r.json())
+                            .then(data => {
+                                let realizadas = '';
+                                let totales = '';
+                                if (data.history) {
+                                    let match = data.history.match(/Sesiones:\s*(\d{1,2})\s*\/\s*(\d{1,2})/i);
+                                    if (!match) match = data.history.match(/(\d{1,2})\s*\/\s*(\d{1,2})\s*sesiones?/i);
+                                    if (match) {
+                                        realizadas = match[1];
+                                        totales = match[2];
+                                    } else {
+                                        let match2 = data.history.match(/Sesiones:\s*(\d{1,2})/i);
+                                        if (match2) realizadas = match2[1];
+                                    }
                                 }
-                            }
-                            sesionesRealizadas.value = realizadas;
-                            sesionesTotales.value = totales;
-                        });
+                                sesionesRealizadas.value = realizadas;
+                                sesionesTotales.value = totales;
+                            });
+                    }
                     // Guardar al salir de los inputs
                     function guardarSesiones() {
                         let valRealizadas = sesionesRealizadas.value.replace(/\D/g, '');
@@ -150,14 +159,15 @@ function loadSchedule(date) {
                         if (valTotales.length > 2) valTotales = valTotales.slice(0,2);
                         sesionesRealizadas.value = valRealizadas;
                         sesionesTotales.value = valTotales;
+                        // Guardar en LocalStorage para este turno
+                        localStorage.setItem(localKey, JSON.stringify({realizadas: valRealizadas, totales: valTotales}));
+                        // Guardar en historia clínica SOLO si es el último turno editado (opcional: podrías definir una lógica para esto)
                         fetch('get_patient_data.php?patient=' + encodeURIComponent(slot.patient))
                             .then(r => r.json())
                             .then(data => {
                                 let newHistory = data.history || '';
-                                // Eliminar cualquier línea previa de sesiones
                                 newHistory = newHistory.replace(/^.*Sesiones:.*$/gmi, '').replace(/(\d{1,2})\s*\/\s*\d{1,2}\s*sesiones?.*$/gmi, '');
                                 newHistory = newHistory.trim();
-                                // Agregar la nueva línea de sesiones al final
                                 if (newHistory) newHistory += '\n';
                                 newHistory += 'Sesiones: ' + valRealizadas + (valTotales ? '/' + valTotales : '');
                                 fetch('save_patient_data.php', {
