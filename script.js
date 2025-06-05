@@ -85,6 +85,7 @@ function loadSchedule(date) {
                         <td class="patient-cell">${slot.patient}</td>
                         <td>
                             <button class="edit-btn ocupado-btn" onclick="editAppointment('${slot.time}', '${date}')">Ocupado</button>
+                            <button class="whatsapp-btn" style="background:#25d366;color:#fff;border:none;border-radius:5px;padding:5px 10px;margin-left:5px;cursor:pointer;" onclick="openWhatsApp()">WhatsApp</button>
                         </td>
                     `;
                 } else {
@@ -329,4 +330,8 @@ function showPatientDataForm(name, parentDropdown) {
 // Llamar después de renderizar la grilla
 function afterScheduleRender() {
     setupPatientAutocomplete();
+}
+
+function openWhatsApp() {
+    window.open('https://web.whatsapp.com/', '_blank');
 }
