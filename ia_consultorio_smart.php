@@ -123,14 +123,13 @@ function extraerNombres($pregunta) {
 }
 
 function buscarPorNombre($nombre, $pdo) {
-    // Búsqueda flexible: LIKE, SOUNDEX y similitud
+    // Búsqueda flexible en appointments
     $sql = "SELECT * FROM appointments WHERE 
             patient_name LIKE :nombre_like OR 
             patient_name LIKE :nombre_inicio OR
             patient_name LIKE :nombre_fin OR
             SOUNDEX(patient_name) = SOUNDEX(:nombre_soundex)
             ORDER BY appointment_date DESC";
-    
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':nombre_like' => "%$nombre%",
@@ -138,8 +137,38 @@ function buscarPorNombre($nombre, $pdo) {
         ':nombre_fin' => "%$nombre",
         ':nombre_soundex' => $nombre
     ]);
-    
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $turnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Buscar historia clínica y datos adicionales en patients
+    $sql2 = "SELECT name, history, data FROM patients WHERE name LIKE :nombre_like OR name LIKE :nombre_inicio OR name LIKE :nombre_fin";
+    $stmt2 = $pdo->prepare($sql2);
+    $stmt2->execute([
+        ':nombre_like' => "%$nombre%",
+        ':nombre_inicio' => "$nombre%",
+        ':nombre_fin' => "%$nombre"
+    ]);
+    $pacientes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+    // Adjuntar info de paciente a cada turno si coincide el nombre
+    foreach ($turnos as &$turno) {
+        foreach ($pacientes as $p) {
+            if (strcasecmp($turno['patient_name'], $p['name']) === 0) {
+                $turno['historia_clinica'] = $p['history'];
+                $turno['datos_adicionales'] = $p['data'];
+            }
+        }
+    }
+    // Si no hay turnos pero sí paciente, igual devolver info
+    if (empty($turnos) && !empty($pacientes)) {
+        foreach ($pacientes as $p) {
+            $turnos[] = [
+                'patient_name' => $p['name'],
+                'historia_clinica' => $p['history'],
+                'datos_adicionales' => $p['data']
+            ];
+        }
+    }
+    return $turnos;
 }
 
 function contienePalabrasFecha($pregunta) {
@@ -217,11 +246,12 @@ function obtenerInfoGeneral($pdo) {
 function construirPrompt($pregunta_original, $info_bd) {
     $prompt = "Eres un asistente inteligente del consultorio médico. ";
     $prompt .= "Tienes acceso completo a la base de datos de citas/turnos y puedes ayudar con consultas sobre pacientes, fechas, horarios, etc.\n\n";
-    
     $prompt .= "ESTRUCTURA DE LA BASE DE DATOS:\n";
     $prompt .= "- Tabla: appointments\n";
-    $prompt .= "- Campos: id, appointment_date (fecha), appointment_time (hora), patient_name (nombre paciente), obra_social\n\n";
-    
+    $prompt .= "- Campos: id, appointment_date (fecha), appointment_time (hora), patient_name (nombre paciente), obra_social\n";
+    $prompt .= "- Tabla: patients\n";
+    $prompt .= "- Campos: name (nombre paciente), history (historia clínica), data (datos adicionales)\n\n";
+
     if(!empty($info_bd)) {
         $prompt .= "INFORMACIÓN ENCONTRADA:\n\n";
         foreach($info_bd as $resultado) {
@@ -229,13 +259,22 @@ function construirPrompt($pregunta_original, $info_bd) {
                 case 'busqueda_nombre':
                     $prompt .= "🔍 BÚSQUEDA POR NOMBRE: '{$resultado['nombre_buscado']}'\n";
                     if(!empty($resultado['datos'])) {
-                        $prompt .= "Citas encontradas:\n";
+                        $prompt .= "Citas encontradas y datos del paciente:\n";
                         foreach($resultado['datos'] as $cita) {
-                            $fecha_formateada = date('d/m/Y', strtotime($cita['appointment_date']));
-                            $hora_formateada = date('H:i', strtotime($cita['appointment_time']));
-                            $prompt .= "- {$cita['patient_name']} - {$fecha_formateada} a las {$hora_formateada}";
+                            $fecha_formateada = isset($cita['appointment_date']) ? date('d/m/Y', strtotime($cita['appointment_date'])) : '';
+                            $hora_formateada = isset($cita['appointment_time']) ? date('H:i', strtotime($cita['appointment_time'])) : '';
+                            $prompt .= "- {$cita['patient_name']}";
+                            if($fecha_formateada && $hora_formateada) {
+                                $prompt .= " - {$fecha_formateada} a las {$hora_formateada}";
+                            }
                             if(!empty($cita['obra_social'])) {
                                 $prompt .= " (Obra Social: {$cita['obra_social']})";
+                            }
+                            if(!empty($cita['historia_clinica'])) {
+                                $prompt .= "\n  Historia clínica: {$cita['historia_clinica']}";
+                            }
+                            if(!empty($cita['datos_adicionales'])) {
+                                $prompt .= "\n  Datos adicionales: {$cita['datos_adicionales']}";
                             }
                             $prompt .= "\n";
                         }
@@ -243,7 +282,7 @@ function construirPrompt($pregunta_original, $info_bd) {
                         $prompt .= "No se encontraron citas para ese nombre.\n";
                     }
                     break;
-                    
+                
                 case 'busqueda_fecha':
                     $prompt .= "📅 BÚSQUEDA POR FECHA:\n";
                     if(!empty($resultado['datos'])) {
@@ -258,7 +297,7 @@ function construirPrompt($pregunta_original, $info_bd) {
                         }
                     }
                     break;
-                    
+                
                 case 'info_general':
                     $info = $resultado['datos'];
                     $prompt .= "📊 INFORMACIÓN GENERAL DEL CONSULTORIO:\n";

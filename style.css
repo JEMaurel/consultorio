@@ -111,10 +111,32 @@ body {
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
+    margin: 4vh auto 0 auto;
     padding: 20px;
-    width: 50%;
+    width: 95vw;
+    max-width: 420px;
+    min-width: 0;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    position: relative;
+    top: 0;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        margin: 2vh auto 0 auto;
+        width: 99vw;
+        max-width: 99vw;
+        min-width: 0;
+        padding: 10px;
+        box-sizing: border-box;
+        top: 0;
+        transform: none;
+    }
+    .modal {
+        padding: 0;
+    }
 }
 
 .close {
