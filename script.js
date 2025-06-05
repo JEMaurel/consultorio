@@ -123,11 +123,23 @@ function loadSchedule(date) {
                     // --- Cargar sesiones desde LocalStorage o historia clínica ---
                     const localKey = `sesiones_${slot.patient}_${date}_${slot.time}`;
                     let localSesiones = localStorage.getItem(localKey);
+                    let lastTotales = '';
+                    // Buscar el último valor de 'totales' usado para este paciente
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith(`sesiones_${slot.patient}_`)) {
+                            try {
+                                const obj = JSON.parse(localStorage.getItem(key));
+                                if (obj && obj.totales && obj.totales !== '') lastTotales = obj.totales;
+                            } catch(e) {}
+                        }
+                    }
                     if (localSesiones) {
                         try {
                             const obj = JSON.parse(localSesiones);
                             sesionesRealizadas.value = obj.realizadas || '';
-                            sesionesTotales.value = obj.totales || '';
+                            // Si el usuario cambió el total, usar ese, si no, autocompletar con el último usado
+                            sesionesTotales.value = (obj.totales && obj.totales !== '') ? obj.totales : lastTotales;
                         } catch(e) {}
                     } else {
                         // Obtener sesiones desde la historia clínica
@@ -148,7 +160,8 @@ function loadSchedule(date) {
                                     }
                                 }
                                 sesionesRealizadas.value = realizadas;
-                                sesionesTotales.value = totales;
+                                // Si hay un total previo, usarlo, si no, el de la historia clínica
+                                sesionesTotales.value = lastTotales || totales;
                             });
                     }
                     // Guardar al salir de los inputs
