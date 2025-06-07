@@ -598,6 +598,38 @@ function showPatientDataForm(name, parentDropdown) {
             form.querySelector('.close-patient-form').onclick = function() {
                 form.remove();
             };
+            // Botón para eliminar paciente
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Eliminar paciente';
+            deleteBtn.style.background = '#e53935';
+            deleteBtn.style.color = '#fff';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.borderRadius = '8px';
+            deleteBtn.style.padding = '7px 18px';
+            deleteBtn.style.fontWeight = 'bold';
+            deleteBtn.style.marginTop = '12px';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.onclick = function() {
+                if (confirm('¿Seguro que desea eliminar completamente a este paciente y todos sus turnos? Esta acción no se puede deshacer.')) {
+                    fetch('delete_patient.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({name: name})
+                    })
+                    .then(r => r.json())
+                    .then(resp => {
+                        if (resp.success) {
+                            alert('Paciente eliminado correctamente');
+                            form.remove();
+                            if(parentDropdown) parentDropdown.remove();
+                            // Opcional: recargar la página o actualizar la lista de pacientes
+                        } else {
+                            alert('Error al eliminar: ' + (resp.error || '')); 
+                        }
+                    });
+                }
+            };
+            form.appendChild(deleteBtn);
             // Evitar cierre al hacer click dentro del panel o en cualquier hijo
             form.addEventListener('mousedown', function(ev) { ev.stopPropagation(); });
             // Cerrar solo si se hace click fuera del panel y del dropdown
@@ -776,6 +808,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         html += `<img src='${data.data}' style='max-width:120px;max-height:120px;display:block;margin:10px auto;'>`;
                                     }
                                     html += `<button id='guardar-edicion-paciente' style='margin-top:8px;background:#ffa726;color:#fff;border:none;border-radius:8px;padding:7px 18px;font-weight:bold;cursor:pointer;'>Guardar</button>`;
+                                    // Botón eliminar paciente
+                                    html += `<button id='eliminar-paciente-def' style='margin-top:8px;background:#e53935;color:#fff;border:none;border-radius:8px;padding:7px 18px;font-weight:bold;cursor:pointer;margin-left:10px;'>Eliminar paciente</button>`;
                                     datosDiv.innerHTML = html;
                                     // Guardar cambios
                                     document.getElementById('guardar-edicion-paciente').onclick = function() {
@@ -804,6 +838,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 alert('Error al guardar');
                                             }
                                         });
+                                    };
+                                    // Eliminar paciente
+                                    document.getElementById('eliminar-paciente-def').onclick = function() {
+                                        if (confirm('¿Seguro que desea eliminar completamente a este paciente y todos sus turnos? Esta acción no se puede deshacer.')) {
+                                            fetch('delete_patient.php', {
+                                                method: 'POST',
+                                                headers: {'Content-Type': 'application/json'},
+                                                body: JSON.stringify({name: name})
+                                            })
+                                            .then(r => r.json())
+                                            .then(resp => {
+                                                if (resp.success) {
+                                                    alert('Paciente eliminado correctamente');
+                                                    modal.style.display = 'none';
+                                                } else {
+                                                    alert('Error al eliminar: ' + (resp.error || ''));
+                                                }
+                                            });
+                                        }
                                     };
                                 });
                         });

@@ -95,8 +95,9 @@ body {
 }
 
 #calendar .today {
-    background-color: #ffeb3b;
-    font-weight: bold;
+    background: #fffde7 !important; /* amarillo suave */
+    border: 2px solid #ffe082 !important;
+    border-radius: 8px;
 }
 
 /* Estilos del formulario modal */
@@ -210,8 +211,21 @@ form button:hover {
 }
 
 #calendarTable td.today {
-    background-color: #ffeb3b;
+    background: linear-gradient(135deg, #ffe082 60%, #ffb300 100%);
     font-weight: bold;
+    color: #2d2d2d;
+    border: 2.5px solid #fb8c00;
+    box-shadow: 0 0 0 3px #fffde7, 0 2px 8px #ffecb3;
+    position: relative;
+}
+#calendarTable td.today .calendar-day-btn::after {
+    content: '☀️';
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 1.1em;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 2px #fffde7);
 }
 
 .calendar-day-btn.selected {
