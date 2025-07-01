@@ -39,6 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $conn->close();
+    // Generar respaldo actualizado de turnos por día
+    require_once __DIR__ . '/backup_utils.php';
+    $conn2 = new mysqli("localhost", "root", "", "consultorio_db");
+    if (!$conn2->connect_error) {
+        generar_respaldo_turnos($conn2);
+        $conn2->close();
+    }
     // Si es petición AJAX, no redirigir
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || !empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
         echo json_encode(['success' => true]);

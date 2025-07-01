@@ -10,6 +10,9 @@ if ($conn->connect_error) {
 }
 $sql = "DELETE FROM appointments WHERE appointment_date = '$date' AND appointment_time = '$time'";
 if ($conn->query($sql)) {
+    // Actualizar respaldo de turnos
+    require_once __DIR__ . '/backup_utils.php';
+    generar_respaldo_turnos($conn);
     echo json_encode(['success' => true]);
 } else {
     echo json_encode(['success' => false, 'error' => $conn->error]);

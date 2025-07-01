@@ -22,6 +22,9 @@ $sql = "INSERT INTO patients (name, history, data) VALUES (?, ?, ?) ON DUPLICATE
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('sssss', $name, $history, $other, $history, $other);
 $ok = $stmt->execute();
+// Guardar historia clínica en archivo
+require_once __DIR__ . '/backup_utils.php';
+guardar_historia_clinica($name, $history);
 // Si se extrajo obra social, actualizar también en appointments
 if ($obra_social !== '') {
     $conn->query("UPDATE appointments SET obra_social = '" . $conn->real_escape_string($obra_social) . "' WHERE patient_name = '" . $conn->real_escape_string($name) . "'");
