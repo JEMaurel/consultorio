@@ -109,6 +109,7 @@ setIAMinimized(true);
 </script>
 <body>
     <div class="container">
+
         <!-- Calendario -->
         <div class="calendar">
             <h2>Calendario</h2>
@@ -150,6 +151,7 @@ setIAMinimized(true);
                 </tbody>
             </table>
         </div>
+
     </div>
 
     <!-- Formulario para registrar paciente -->
@@ -194,6 +196,12 @@ setIAMinimized(true);
     <div id="datos-paciente-buscado" style="margin-top:12px;"></div>
   </div>
 </div>
+
+    <!-- Sector de Contabilidad -->
+        <div id="contabilidad-section" style="margin-top:32px;">
+            <button id="btn-contabilidad" style="background:#2196f3;color:#fff;font-weight:bold;padding:10px 24px;border:none;border-radius:12px;font-size:1.1em;box-shadow:0 2px 8px #2196f350;cursor:pointer;">Contabilidad</button>
+            <div id="contabilidad-panel" style="display:none;margin-top:18px;background:#f4faff;border-radius:14px;padding:18px 16px;box-shadow:0 2px 8px #2196f320;"></div>
+        </div>
 
     <script src="script.js"></script>
     <script>
